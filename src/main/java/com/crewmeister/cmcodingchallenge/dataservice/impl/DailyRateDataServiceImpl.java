@@ -55,7 +55,6 @@ public class DailyRateDataServiceImpl implements DailyRateDataService {
 	public List<DailyRate> saveAllRates(List<DailyRate> rateList) {
 		LOGGER.info("Flushing batchSize" + rateList.size());
 		Iterable<DailyRate> response = dailyRateRepository.saveAll(rateList);
-		LOGGER.info("Flushing after save ");
 
 		List<DailyRate> entityList = new ArrayList<DailyRate>();
 		response.forEach(entityList::add);

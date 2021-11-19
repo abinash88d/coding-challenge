@@ -27,12 +27,22 @@ public final class CurrencyConstant {
 	public static final String DEFAULT_RATE_SORT_FIELD = "id";
 	public static final String XML_ID_ATTRIBUTE = "id";
 	public static final String XML_VALUE_ATTRIBUTE = "value";
+	public static final String XML_STANDARD_CURRENCY_PATH = "//generic:SeriesKey/generic:Value[@id='BBK_STD_CURRENCY']/@value";
+	public static final String XML_FX_CURRENCY_PATH = "//generic:SeriesKey/generic:Value[@id='BBK_ERX_PARTNER_CURRENCY']/@value";
+	public static final String XML_ROOT_NODE= "generic:Obs";
+	public static final String XML_RATE_DATE_TAG="generic:ObsDimension";
+	public static final String XML_EXCHANGE_RATE_TAG="generic:ObsValue";
+	public static final String XML_ATTRIBUTE_ROOT_TAG="generic:Attributes";
+	public static final String XML_VALUE_ROOT_TAG="generic:Value";
+
 	
 	public static final String RATE_FILE_EXTENSION = ".xml";
 	public static final String RATE_FILE_STATUS_ELEMENT ="OBS_STATUS";
 	public static final String RATE_FILE_DIFF_ELEMENT ="BBK_DIFF";
+	public static final String RATE_NONHOLIDAY_FLAG = "N";
 	
 	public static final String DEFAULT_FX_RATE = "0.0";
+	public static final int ZERO = 0;
 	
 	public static final String RESPONSE_NO_RECORD_FOUND= "No rates found";
 	public static final String REQUEST_VALIDATION_CURRENCY_MISSING = "Currency code missing!";
@@ -47,6 +57,9 @@ public final class CurrencyConstant {
 	
 	public static final String TIMESTAMP = "timestamp";
 	public static final String MESSAGE = "message";
+	
+	public static final String  RATE_PROCESSOR_USER = "DAILY_RATE_PROCESSOR";
+	
 
 
 

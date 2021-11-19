@@ -59,80 +59,80 @@ public class DailyRateXmlParserImpl implements DailyRateFileParser {
 	public List<DailyRate> parseXml(String fileName) throws FileParsingException {
 		List<DailyRate> dailyRateList = new ArrayList<DailyRate>();
 
+		LOGGER.info("Parsing rate filename {}. " + fileName);
 		try {
-			File inputFile = new File(dailyRateFolder + fileName + CurrencyConstant.RATE_FILE_EXTENSION);
-			DocumentBuilderFactory dBfactory = DocumentBuilderFactory.newInstance();
-			dBfactory.setNamespaceAware(true);
+			Document document = this.buildDocument(fileName);
+			XPath xpath = this.buildXPath(document);
 
-			DocumentBuilder builder = dBfactory.newDocumentBuilder();
-			Document document = builder.parse(inputFile);
-			document.getDocumentElement().normalize();
+			// Fetching source (FX) currency code using xpath Query
+			String sourceCurrency = this.executeXpathQuery(xpath, document,
+					CurrencyConstant.XML_STANDARD_CURRENCY_PATH);
 
-			XPathFactory xpathfactory = XPathFactory.newInstance();
-			XPath xpath = xpathfactory.newXPath();
-			xpath.setNamespaceContext(new NamespaceResolver(document));
-			XPathExpression stdCurrencyExp = xpath
-					.compile("//generic:SeriesKey/generic:Value[@id='BBK_STD_CURRENCY']/@value");
-			Node stdCurrencyNode = (Node) stdCurrencyExp.evaluate(document, XPathConstants.NODE);
-			String sourceCurrency = stdCurrencyNode.getNodeValue();
+			// Fetching target (EUR) currency code using xpath Query
+			String targetCurrency = this.executeXpathQuery(xpath, document, CurrencyConstant.XML_FX_CURRENCY_PATH);
 
-			XPathExpression partnerCurrencyExp = xpath
-					.compile("//generic:SeriesKey/generic:Value[@id='BBK_ERX_PARTNER_CURRENCY']/@value");
-			Node partnerCurrencyNode = (Node) partnerCurrencyExp.evaluate(document, XPathConstants.NODE);
-			String targetCurrency = partnerCurrencyNode.getNodeValue();
-
-			NodeList genericNodeList = document.getElementsByTagName("generic:Obs");
+			// Fetching all rate nodes using Root tag
+			NodeList genericNodeList = document.getElementsByTagName(CurrencyConstant.XML_ROOT_NODE);
 
 			for (int i = 0; i < genericNodeList.getLength(); i++) {
 				Node node = genericNodeList.item(i);
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
+
+					// New Entity for each rate instance
 					DailyRate dailyRate = new DailyRate();
 					dailyRate.setSourceCurrency(sourceCurrency);
 					dailyRate.setTargetCurrency(targetCurrency);
 
+					// Fetching exchange rate date
 					Element genericObsElement = (Element) node;
-					NodeList genericDimensionList = genericObsElement.getElementsByTagName("generic:ObsDimension");
-					if (genericDimensionList.getLength() > 0) {
-						Element obsDimensionElement = (Element) genericDimensionList.item(0);
-						dailyRate.setRateDate(DailyRateUtiliity
-								.getDateValue(obsDimensionElement.getAttribute(CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+					NodeList genericDimensionList = genericObsElement
+							.getElementsByTagName(CurrencyConstant.XML_RATE_DATE_TAG);
+					if (genericDimensionList.getLength() > CurrencyConstant.ZERO) {
+						Element obsDimensionElement = (Element) genericDimensionList.item(CurrencyConstant.ZERO);
+						dailyRate.setRateDate(DailyRateUtiliity.getDateValue(
+								getAttributeValue(obsDimensionElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
 					}
 
-					NodeList obsValueList = genericObsElement.getElementsByTagName("generic:ObsValue");
-					if (obsValueList.getLength() > 0) {
-						Element obsValueElement = (Element) obsValueList.item(0);
-						dailyRate.setExchangeRate(
-								new BigDecimal(obsValueElement.getAttribute(CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+					// Fetching exchange rate
+					NodeList obsValueList = genericObsElement
+							.getElementsByTagName(CurrencyConstant.XML_EXCHANGE_RATE_TAG);
+					if (obsValueList.getLength() > CurrencyConstant.ZERO) {
+						Element obsValueElement = (Element) obsValueList.item(CurrencyConstant.ZERO);
+						dailyRate.setExchangeRate(new BigDecimal(
+								getAttributeValue(obsValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
 					}
 
-					NodeList attributeNodeList = genericObsElement.getElementsByTagName("generic:Attributes");
+					// Handling Holiday logic, exchange rate will not be available
+					NodeList attributeNodeList = genericObsElement
+							.getElementsByTagName(CurrencyConstant.XML_ATTRIBUTE_ROOT_TAG);
 					for (int j = 0; j < attributeNodeList.getLength(); j++) {
 						Node node2 = attributeNodeList.item(j);
 						if (node2.getNodeType() == Node.ELEMENT_NODE) {
 							Element attributeElement = (Element) node2;
-							NodeList genericValueList = attributeElement.getElementsByTagName("generic:Value");
-							Element genericValueElement = (Element) genericValueList.item(0);
-							if (CurrencyConstant.RATE_FILE_STATUS_ELEMENT
-									.equals(genericValueElement.getAttribute(CurrencyConstant.XML_ID_ATTRIBUTE))) {
+							NodeList genericValueList = attributeElement
+									.getElementsByTagName(CurrencyConstant.XML_VALUE_ROOT_TAG);
+							Element genericValueElement = (Element) genericValueList.item(CurrencyConstant.ZERO);
+							if (CurrencyConstant.RATE_FILE_STATUS_ELEMENT.equals(
+									getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
 								dailyRate.setHolidayStatus(
-										genericValueElement.getAttribute(CurrencyConstant.XML_VALUE_ATTRIBUTE));
+										getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE));
 								dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
 								dailyRate.setExchangeRate(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
-							} else if (CurrencyConstant.RATE_FILE_DIFF_ELEMENT
-									.equals(genericValueElement.getAttribute(CurrencyConstant.XML_ID_ATTRIBUTE))) {
-								dailyRate.setHolidayStatus("N");
+							} else if (CurrencyConstant.RATE_FILE_DIFF_ELEMENT.equals(
+									getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
+								dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
 								dailyRate.setExchangeRateDifference(new BigDecimal(
-										genericValueElement.getAttribute(CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+										getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
 							}
 						}
 
 					}
 					if (null != dailyRate.getExchangeRate() && 0 == attributeNodeList.getLength()) {
-						dailyRate.setHolidayStatus("N");
+						dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
 						dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
 					}
 					dailyRate.setUpdatedTimestamp(new Timestamp(System.currentTimeMillis()));
-					dailyRate.setUpdatedUser("DAILY_RATE_PROCESSOR");
+					dailyRate.setUpdatedUser(CurrencyConstant.RATE_PROCESSOR_USER);
 					dailyRateList.add(dailyRate);
 				}
 			}
@@ -144,4 +144,69 @@ public class DailyRateXmlParserImpl implements DailyRateFileParser {
 		return dailyRateList;
 	}
 
+	/**
+	 * Method to build document object from XML file
+	 * 
+	 * @parm fileName Input XML file name
+	 * 
+	 * @return Document documents object
+	 *
+	 * @throws ParserConfigurationException, SAXException, IOException
+	 * 
+	 */
+	private Document buildDocument(String fileName) throws ParserConfigurationException, SAXException, IOException {
+		File inputFile = new File(dailyRateFolder + fileName + CurrencyConstant.RATE_FILE_EXTENSION);
+		DocumentBuilderFactory dBfactory = DocumentBuilderFactory.newInstance();
+		dBfactory.setNamespaceAware(true);
+
+		DocumentBuilder builder = dBfactory.newDocumentBuilder();
+		Document document = builder.parse(inputFile);
+		document.getDocumentElement().normalize();
+		return document;
+	}
+
+	/**
+	 * Method to build XPATH object from document object.Will be helpful to query
+	 * xml nodes.
+	 * 
+	 * @parm Document document object
+	 * 
+	 * @return XPath xpath object
+	 * 
+	 */
+	private XPath buildXPath(Document document) {
+		XPathFactory xpathfactory = XPathFactory.newInstance();
+		XPath xpath = xpathfactory.newXPath();
+		xpath.setNamespaceContext(new NamespaceResolver(document));
+		return xpath;
+	}
+
+	/**
+	 * Method to query XPATH object and fetch value
+	 * 
+	 * @parm XPath XPath object
+	 * @parm Document XML document object
+	 * @parm query Query to execute
+	 * 
+	 * @return String value
+	 * 
+	 */
+	private String executeXpathQuery(XPath xpath, Document document, String query) throws XPathExpressionException {
+		XPathExpression expression = xpath.compile(query);
+		Node node = (Node) expression.evaluate(document, XPathConstants.NODE);
+		return node.getNodeValue();
+	}
+
+	/**
+	 * Method to fetch attribute Value from Document element
+	 * 
+	 * @parm Element document element
+	 * @parm attributeName attribute name to fetch value
+	 * 
+	 * @return String value
+	 * 
+	 */
+	private String getAttributeValue(Element element, String attributeName) {
+		return element.getAttribute(attributeName);
+	}
 }

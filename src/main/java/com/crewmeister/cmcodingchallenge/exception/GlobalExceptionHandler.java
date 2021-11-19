@@ -25,7 +25,7 @@ import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
  * 
  */
 @ControllerAdvice
-public class RateExceptionHandler extends ResponseEntityExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public final ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex, WebRequest request) {

@@ -22,8 +22,10 @@ public class CmCodingChallengeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(CmCodingChallengeApplication.class, args);
 		LOGGER.info("Boot app started ");
+		LOGGER.info("GET /api/currencies service started");
+		LOGGER.info("GET /api/rates service started");
+		LOGGER.info("GET /api/convertcurrency service started");
 
 	}
-
 
 }

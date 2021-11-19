@@ -54,13 +54,11 @@ public class RateFileDownloadController {
 		LOGGER.info("Downloading File {}." + fileName);
 		Integer statusCode = dailyRateFileDownloader.downloadfile(fileName);
 
-		LOGGER.info("Download status fileName " + fileName + "statusCode :"+statusCode);
+		LOGGER.info("Downloading comppleted with status : fileName {}. " + fileName + "statusCode :"+statusCode);
 
 		if (200 == statusCode) {
 			try {
 				List<DailyRate> dailyRateList = dailyRateXmlParser.parseXml(fileName);
-				LOGGER.info("Parsing completed " + fileName + "statusCode :"+statusCode);
-
 				List<DailyRate> savedRecordList = dailyRateDataService.saveAllRates(dailyRateList);
 
 				LOGGER.info("Total record processed size : " + savedRecordList.size());

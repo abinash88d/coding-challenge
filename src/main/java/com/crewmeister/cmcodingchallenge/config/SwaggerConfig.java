@@ -40,7 +40,7 @@ public class SwaggerConfig {
 	 * @return ApiInfoBuilder
 	 */
 	private ApiInfo apiInfo() {
-		return new ApiInfoBuilder().title("").description("").version("1.0").build();
+		return new ApiInfoBuilder().title("EUR-FX exchange rate APIs").description("Rest Service implementation for the Daily EUR-FX Exchange rates.").version("1.0").build();
 	}
 
 }
