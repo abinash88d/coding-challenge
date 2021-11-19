@@ -33,7 +33,7 @@ $ mvn test
 	
     To get all EUR-FX exchange rates at all available dates
 		- http://localhost:8080/api/rates
-		  http://localhost:8080/api/rates?page={page}&perPage={size}&sortBy={sortfield}  [with pagination and sorting]
+		  http://localhost:8080/api/rates?page={page}&perPage={size}&sortBy={sortfield}  [with pagination and sorting. current available sort sortBy=rateDate]
 	
 	To get the EUR-FX exchange rate at particular day. 
 	Date Format yyyy-MM-dd (2021-11-12)
