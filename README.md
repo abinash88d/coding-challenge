@@ -30,23 +30,28 @@ $ mvn test
 
 1)	To get a list of all available currencies
 		
-		- http://localhost:8080/api/currencies  
+		http://localhost:8080/api/currencies  
 		
 		Sample Request : curl -X GET --header 'Accept: application/json' 'http://localhost:8080/api/currencies'	  
 		 
 	
 2)   To get all EUR-FX exchange rates at all available dates
 		
-		- http://localhost:8080/api/rates
+		
+		
+		  http://localhost:8080/api/rates
 		  http://localhost:8080/api/rates?page={page}&perPage={size}&sortBy={sortfield}  [with pagination and sorting. Current available sort {rateDate}]
 		
 		  Sample get all Rates Request : curl -X GET --header 'Accept: application/json' 'http://localhost:8080/api/rates'	
 		  Sample get Rates with Page and Sort Request : curl -X GET --header 'Accept: application/json' 'http://localhost:8080/api/rates?page=1&perPage=2&sortBy=rateDate'
+		 
+		 
+		 
 		
 3)	To get the EUR-FX exchange rate at particular day. 
 	Date Format yyyy-MM-dd (2021-11-12)
 		
-		- http://localhost:8080/api/rates/{date}  
+		  http://localhost:8080/api/rates/{date}  
 		
 		  Sample get Rates by date Request :curl -X GET --header 'Accept: application/json' 'http://localhost:8080/api/rates/2021-11-12'
 		
@@ -55,7 +60,7 @@ $ mvn test
 4)	To get a foreign exchange amount for a given currency converted to EUR on a particular day
 	Date Format yyyy-MM-dd (2021-11-12)
 		
-		- http://localhost:8080/api/convertcurrency/date/{date}/currency/{currencycode}/amount/{amount}
+		  http://localhost:8080/api/convertcurrency/date/{date}/currency/{currencycode}/amount/{amount}
 		
 		  Sample currency conversion Request :curl -X GET --header 'Accept: application/json' 'http://localhost:8080/api/convertcurrency/date/2021-11-12/currency/AUD/amount/100'
 		
