@@ -50,6 +50,7 @@ public final class CurrencyConstant {
 
 	public static final String REQUEST_VALIDATION_INVALID_AMOUNT = "Amount must be greater than or equal to 1";
 	public static final String REQUEST_VALIDATION_CURRENCY_INVALID = "Currency code missing";
+	public static final String REQUEST_VALIDATION_INVALID_SORT = "Invalid sort type";
 	
 	public static final String RESPONSE_NO_RECORD_FOUND_FOR_DATE= "No rates found for date ";
 	public static final String RESPONSE_CURRENCY = " currency  ";

@@ -61,7 +61,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		Map<String, Object> body = new LinkedHashMap<>();
 		body.put(CurrencyConstant.MESSAGE, details);
+		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+	}
 
+	@ExceptionHandler(IllegalArgumentException.class)
+	public final ResponseEntity<Map<String, Object>> handleInvalidArgumentException(IllegalArgumentException ex,
+			WebRequest request) {
+		Map<String, Object> body = new LinkedHashMap<>();
+		body.put(CurrencyConstant.TIMESTAMP, LocalDateTime.now());
+		body.put(CurrencyConstant.MESSAGE, ex.getLocalizedMessage());
 		return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
 	}
 

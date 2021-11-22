@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.constant.Sort;
 import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
 import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
 import com.crewmeister.cmcodingchallenge.exception.RateNotFoundException;
@@ -92,6 +93,13 @@ public class CurrencyController {
 			@RequestParam Optional<Integer> perPage, @RequestParam Optional<String> sortBy) {
 		LOGGER.info("Inside get rates service call for page size {}." + perPage);
 
+		if (sortBy.isPresent()) {
+			Optional<Sort> fetchedSort = Sort.getSort(sortBy.get());
+			fetchedSort
+					.orElseThrow(() -> new IllegalArgumentException(CurrencyConstant.REQUEST_VALIDATION_INVALID_SORT));
+
+		}
+		
 		List<DailyRateDto> rateList = Collections.emptyList();
 		if (page.isPresent() && perPage.isPresent() && sortBy.isPresent()) {
 			rateList = dailyRateDataService.findAllRatesByPage(page.get(), perPage.get(), sortBy.get());
