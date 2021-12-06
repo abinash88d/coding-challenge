@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.config;
+package com.crewmeister.cmcodingchallenge.commons.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {
+public class ApiDocumentConfig {
 
 	/**
 	 * Method to set paths to be included through swagger
