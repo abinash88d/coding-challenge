@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.config;
+package com.crewmeister.cmcodingchallenge.commons.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
  */
 
 @Configuration
-public class RestTemplateConfig {
+public class HttpClientConfig {
 
 	/**
 	 * Creates Rest Template to use in invoking endpoints 

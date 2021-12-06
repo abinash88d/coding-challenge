@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.helper;
+package com.crewmeister.cmcodingchallenge.commons.helper;
 
 import java.util.Collections;
 import java.util.Iterator;

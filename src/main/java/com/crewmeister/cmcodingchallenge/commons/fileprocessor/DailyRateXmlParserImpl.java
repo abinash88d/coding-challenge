@@ -1,8 +1,9 @@
-package com.crewmeister.cmcodingchallenge.processor.Impl;
+package com.crewmeister.cmcodingchallenge.commons.fileprocessor;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +27,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.commons.helper.NamespaceResolver;
+import com.crewmeister.cmcodingchallenge.commons.utility.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.commons.utility.DailyRateUtiliity;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
 import com.crewmeister.cmcodingchallenge.exception.FileParsingException;
-import com.crewmeister.cmcodingchallenge.helper.NamespaceResolver;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileParser;
-import com.crewmeister.cmcodingchallenge.utility.DailyRateUtiliity;
 
 /**
  * Processor implementation for XML parsing
@@ -57,9 +57,12 @@ public class DailyRateXmlParserImpl implements DailyRateFileParser {
 	 * 
 	 */
 	public List<DailyRate> parseXml(String fileName) throws FileParsingException {
-		List<DailyRate> dailyRateList = new ArrayList<DailyRate>();
-
 		LOGGER.info("Parsing rate filename {}. " + fileName);
+		return parseXml(fileName, null);
+	}
+
+	public List<DailyRate> parseXml(String fileName, Date filterDate) throws FileParsingException {
+		List<DailyRate> rates;
 		try {
 			Document document = this.buildDocument(fileName);
 			XPath xpath = this.buildXPath(document);
@@ -70,76 +73,90 @@ public class DailyRateXmlParserImpl implements DailyRateFileParser {
 
 			// Fetching target (EUR) currency code using xpath Query
 			String targetCurrency = this.executeXpathQuery(xpath, document, CurrencyConstant.XML_FX_CURRENCY_PATH);
-
-			// Fetching all rate nodes using Root tag
-			NodeList genericNodeList = document.getElementsByTagName(CurrencyConstant.XML_ROOT_NODE);
-
-			for (int i = 0; i < genericNodeList.getLength(); i++) {
-				Node node = genericNodeList.item(i);
-				if (node.getNodeType() == Node.ELEMENT_NODE) {
-
-					// New Entity for each rate instance
-					DailyRate dailyRate = new DailyRate();
-					dailyRate.setSourceCurrency(sourceCurrency);
-					dailyRate.setTargetCurrency(targetCurrency);
-
-					// Fetching exchange rate date
-					Element genericObsElement = (Element) node;
-					NodeList genericDimensionList = genericObsElement
-							.getElementsByTagName(CurrencyConstant.XML_RATE_DATE_TAG);
-					if (genericDimensionList.getLength() > CurrencyConstant.ZERO) {
-						Element obsDimensionElement = (Element) genericDimensionList.item(CurrencyConstant.ZERO);
-						dailyRate.setRateDate(DailyRateUtiliity.getDateValue(
-								getAttributeValue(obsDimensionElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
-					}
-
-					// Fetching exchange rate
-					NodeList obsValueList = genericObsElement
-							.getElementsByTagName(CurrencyConstant.XML_EXCHANGE_RATE_TAG);
-					if (obsValueList.getLength() > CurrencyConstant.ZERO) {
-						Element obsValueElement = (Element) obsValueList.item(CurrencyConstant.ZERO);
-						dailyRate.setExchangeRate(new BigDecimal(
-								getAttributeValue(obsValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
-					}
-
-					// Handling Holiday logic, exchange rate will not be available
-					NodeList attributeNodeList = genericObsElement
-							.getElementsByTagName(CurrencyConstant.XML_ATTRIBUTE_ROOT_TAG);
-					for (int j = 0; j < attributeNodeList.getLength(); j++) {
-						Node node2 = attributeNodeList.item(j);
-						if (node2.getNodeType() == Node.ELEMENT_NODE) {
-							Element attributeElement = (Element) node2;
-							NodeList genericValueList = attributeElement
-									.getElementsByTagName(CurrencyConstant.XML_VALUE_ROOT_TAG);
-							Element genericValueElement = (Element) genericValueList.item(CurrencyConstant.ZERO);
-							if (CurrencyConstant.RATE_FILE_STATUS_ELEMENT.equals(
-									getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
-								dailyRate.setHolidayStatus(
-										getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE));
-								dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
-								dailyRate.setExchangeRate(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
-							} else if (CurrencyConstant.RATE_FILE_DIFF_ELEMENT.equals(
-									getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
-								dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
-								dailyRate.setExchangeRateDifference(new BigDecimal(
-										getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
-							}
-						}
-
-					}
-					if (null != dailyRate.getExchangeRate() && 0 == attributeNodeList.getLength()) {
-						dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
-						dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
-					}
-					dailyRate.setUpdatedTimestamp(new Timestamp(System.currentTimeMillis()));
-					dailyRate.setUpdatedUser(CurrencyConstant.RATE_PROCESSOR_USER);
-					dailyRateList.add(dailyRate);
-				}
+			NodeList nodes;
+			if (null != filterDate) {
+				XPathExpression expression = xpath
+						.compile(String.format(CurrencyConstant.XML_FILTER_RATE_WITH_DATE, filterDate));
+				Object result = expression.evaluate(document, XPathConstants.NODESET);
+				nodes = (NodeList) result;
+			} else {
+				// Fetching all rate nodes using Root tag
+				nodes = document.getElementsByTagName(CurrencyConstant.XML_ROOT_NODE);
 			}
+
+			rates = readRateNodes(nodes, sourceCurrency, targetCurrency);
+
 		} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException exception) {
 			LOGGER.error(exception);
 			throw new FileParsingException(" Unable to parse File : " + fileName, exception);
 
+		}
+		return rates;
+	}
+
+	private List<DailyRate> readRateNodes(NodeList genericNodeList, String sourceCurrency, String targetCurrency) {
+		List<DailyRate> dailyRateList = new ArrayList<DailyRate>();
+
+		for (int i = 0; i < genericNodeList.getLength(); i++) {
+			Node node = genericNodeList.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+
+				// New Entity for each rate instance
+				DailyRate dailyRate = new DailyRate();
+				dailyRate.setSourceCurrency(sourceCurrency);
+				dailyRate.setTargetCurrency(targetCurrency);
+
+				// Fetching exchange rate date
+				Element genericObsElement = (Element) node;
+				NodeList genericDimensionList = genericObsElement
+						.getElementsByTagName(CurrencyConstant.XML_RATE_DATE_TAG);
+				if (genericDimensionList.getLength() > CurrencyConstant.ZERO) {
+					Element obsDimensionElement = (Element) genericDimensionList.item(CurrencyConstant.ZERO);
+					dailyRate.setRateDate(DailyRateUtiliity.getDateValue(
+							getAttributeValue(obsDimensionElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+				}
+
+				// Fetching exchange rate
+				NodeList obsValueList = genericObsElement.getElementsByTagName(CurrencyConstant.XML_EXCHANGE_RATE_TAG);
+				if (obsValueList.getLength() > CurrencyConstant.ZERO) {
+					Element obsValueElement = (Element) obsValueList.item(CurrencyConstant.ZERO);
+					dailyRate.setExchangeRate(
+							new BigDecimal(getAttributeValue(obsValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+				}
+
+				// Handling Holiday logic, exchange rate will not be available
+				NodeList attributeNodeList = genericObsElement
+						.getElementsByTagName(CurrencyConstant.XML_ATTRIBUTE_ROOT_TAG);
+				for (int j = 0; j < attributeNodeList.getLength(); j++) {
+					Node node2 = attributeNodeList.item(j);
+					if (node2.getNodeType() == Node.ELEMENT_NODE) {
+						Element attributeElement = (Element) node2;
+						NodeList genericValueList = attributeElement
+								.getElementsByTagName(CurrencyConstant.XML_VALUE_ROOT_TAG);
+						Element genericValueElement = (Element) genericValueList.item(CurrencyConstant.ZERO);
+						if (CurrencyConstant.RATE_FILE_STATUS_ELEMENT
+								.equals(getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
+							dailyRate.setHolidayStatus(
+									getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE));
+							dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
+							dailyRate.setExchangeRate(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
+						} else if (CurrencyConstant.RATE_FILE_DIFF_ELEMENT
+								.equals(getAttributeValue(genericValueElement, CurrencyConstant.XML_ID_ATTRIBUTE))) {
+							dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
+							dailyRate.setExchangeRateDifference(new BigDecimal(
+									getAttributeValue(genericValueElement, CurrencyConstant.XML_VALUE_ATTRIBUTE)));
+						}
+					}
+
+				}
+				if (null != dailyRate.getExchangeRate() && 0 == attributeNodeList.getLength()) {
+					dailyRate.setHolidayStatus(CurrencyConstant.RATE_NONHOLIDAY_FLAG);
+					dailyRate.setExchangeRateDifference(new BigDecimal(CurrencyConstant.DEFAULT_FX_RATE));
+				}
+				dailyRate.setUpdatedTimestamp(new Timestamp(System.currentTimeMillis()));
+				dailyRate.setUpdatedUser(CurrencyConstant.RATE_PROCESSOR_USER);
+				dailyRateList.add(dailyRate);
+			}
 		}
 		return dailyRateList;
 	}
@@ -209,4 +226,26 @@ public class DailyRateXmlParserImpl implements DailyRateFileParser {
 	private String getAttributeValue(Element element, String attributeName) {
 		return element.getAttribute(attributeName);
 	}
+
+	@Override
+	public Boolean verifyFile(String fileName, Date filterDate) throws FileParsingException {
+		Date preparedDate;
+		Date currentDate;
+		try {
+			Document document = this.buildDocument(fileName);
+			XPath xpath = this.buildXPath(document);
+
+			// Get file prepared date
+			String fetchedDate = this.executeXpathQuery(xpath, document, CurrencyConstant.XML_GET_PREPARED_DATE);
+			preparedDate = DailyRateUtiliity.getDateValue(fetchedDate);
+			currentDate = DailyRateUtiliity.getLastWorkingDate(DailyRateUtiliity.getCurrentDate());
+
+		} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException exception) {
+			LOGGER.error(exception);
+			throw new FileParsingException(" Unable to parse File : " + fileName, exception);
+
+		}
+		return (preparedDate.compareTo(currentDate) == 0);
+	}
+
 }

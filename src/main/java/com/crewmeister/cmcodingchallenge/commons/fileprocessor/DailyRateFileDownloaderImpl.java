@@ -1,9 +1,10 @@
-package com.crewmeister.cmcodingchallenge.processor.Impl;
+package com.crewmeister.cmcodingchallenge.commons.fileprocessor;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Date;
 import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
-import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
-import com.crewmeister.cmcodingchallenge.currency.RateFileDownloadController;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileDownloader;
+import com.crewmeister.cmcodingchallenge.commons.utility.CurrencyConstant;
 
 /**
  * Service class for Rate File Download
@@ -28,7 +27,7 @@ import com.crewmeister.cmcodingchallenge.processor.DailyRateFileDownloader;
 @Service
 public class DailyRateFileDownloaderImpl implements DailyRateFileDownloader {
 
-	private static final Logger LOGGER = LogManager.getLogger(RateFileDownloadController.class.getName());
+	private static final Logger LOGGER = LogManager.getLogger(DailyRateFileDownloaderImpl.class.getName());
 
 	private RestTemplate restTemplate;
 
@@ -42,6 +41,9 @@ public class DailyRateFileDownloaderImpl implements DailyRateFileDownloader {
 	private String rateDownloadFormat;
 
 	@Autowired
+	private DailyRateFileParser dailyRateFileParser;
+
+	@Autowired
 	public DailyRateFileDownloaderImpl(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
@@ -49,35 +51,55 @@ public class DailyRateFileDownloaderImpl implements DailyRateFileDownloader {
 	/**
 	 * Downloads rate file from Bank's endpoint and stores in local mount
 	 * 
-	 * @param fileName 
-	 * 		  Input file name
+	 * @param fileName Input file name
 	 * 
-	 * @return status code 
-	 * 		  Integer status code
+	 * @return status code Integer status code
 	 */
 
 	@Override
 	public Integer downloadfile(String fileName) {
 		String url = dailyRateUrl + fileName + rateDownloadFormat;
-		LOGGER.info("File URL - " + url);
 
-		String targetPath = dailyRateFolder + fileName;
+		Boolean isUpdated = false;
+		int statusCode;
+		String targetFile = dailyRateFolder + fileName;
+		Path tagetFilePath = Paths.get(targetFile + CurrencyConstant.RATE_FILE_EXTENSION);
+		if (Files.exists(tagetFilePath)) {
+			isUpdated = dailyRateFileParser.verifyFile(fileName, new Date(System.currentTimeMillis()));
+			if (!isUpdated) {
+				try {
+					Files.delete(tagetFilePath);
+				} catch (IOException exception) {
+					LOGGER.error(exception);
+					LOGGER.error(
+							"EventListenerExecute : Failed to clean Rate file directory" + exception.getLocalizedMessage());
+				}
+			}
+		}
 
 		Path path = Paths.get(dailyRateFolder);
 		try {
 			Files.createDirectories(path);
 		} catch (IOException e) {
+			LOGGER.error("Unable to create directory with error " + e);
 			LOGGER.error("Unable to create directory " + path);
 		}
 
-		RequestCallback requestCallback = request -> request.getHeaders()
-				.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+		if (!isUpdated) {			
+			RequestCallback requestCallback = request -> request.getHeaders()
+					.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
 
-		// Streaming the response to file
-		int statusCode = restTemplate.execute(url, HttpMethod.GET, requestCallback, clientHttpResponse -> {
-			Files.copy(clientHttpResponse.getBody(), Paths.get(targetPath + CurrencyConstant.RATE_FILE_EXTENSION));
-			return clientHttpResponse.getStatusCode().value();
-		});
+			// Streaming the response to file
+			statusCode = restTemplate.execute(url, HttpMethod.GET, requestCallback, clientHttpResponse -> {
+				Files.copy(clientHttpResponse.getBody(), tagetFilePath);
+				return clientHttpResponse.getStatusCode().value();
+			});
+			
+			LOGGER.info("Downloading completed ----- " + fileName);
+		} else {
+			LOGGER.info("Updated File is available. Redircting request for " + path);
+			statusCode = 200;
+		}
 
 		return statusCode;
 

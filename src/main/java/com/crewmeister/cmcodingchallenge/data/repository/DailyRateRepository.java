@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.repository;
+package com.crewmeister.cmcodingchallenge.data.repository;
 
 import java.sql.Date;
 import java.util.List;
@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
 
 /**
  * Repository for DAILY_RATE entity
@@ -23,5 +23,9 @@ public interface DailyRateRepository extends PagingAndSortingRepository<DailyRat
 	List<DailyRate> findByRateDate(Date rateDate);
 
 	DailyRate findByRateDateAndSourceCurrency(Date rateDate, String sourceCurrency);
+	
+	@Query("SELECT a.sourceCurrency as sourceCurrency, MAX(a.rateDate) as rateDate FROM DailyRate a GROUP BY a.sourceCurrency")
+	List<Object[]> findMaximumRateDateByCurrency();
+
 
 }

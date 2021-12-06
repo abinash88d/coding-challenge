@@ -15,12 +15,12 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @EnableCaching
-public class CmCodingChallengeApplication {
+public class SpringBootStaterApplication {
 
-	private static final Logger LOGGER = LogManager.getLogger(CmCodingChallengeApplication.class.getName());
+	private static final Logger LOGGER = LogManager.getLogger(SpringBootStaterApplication.class.getName());
 
 	public static void main(String[] args) {
-		SpringApplication.run(CmCodingChallengeApplication.class, args);
+		SpringApplication.run(SpringBootStaterApplication.class, args);
 		LOGGER.info("Boot app started ");
 		LOGGER.info("GET /api/currencies service started");
 		LOGGER.info("GET /api/rates service started");

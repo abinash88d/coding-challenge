@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.processor;
+package com.crewmeister.cmcodingchallenge.commons.fileprocessor;
 
 public interface DailyRateFileDownloader {
 

@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.repository;
+package com.crewmeister.cmcodingchallenge.data.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,7 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
@@ -53,7 +53,7 @@ public class DailyRateRepositoryTest {
 
 	}
 
-	@Test
+    @Test
 	public void testFindAllRates() {
 		Iterable<DailyRate> rateList = dailyRateRepository.findAll();
 		assertThat(rateList).hasSize(1);

@@ -6,14 +6,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.crewmeister.cmcodingchallenge.cache.RedisProperties;
-import com.crewmeister.cmcodingchallenge.config.ApplicationConfig;
-import com.crewmeister.cmcodingchallenge.config.RestTemplateConfig;
-import com.crewmeister.cmcodingchallenge.currency.CurrencyController;
-import com.crewmeister.cmcodingchallenge.currency.RateFileDownloadController;
+import com.crewmeister.cmcodingchallenge.commons.cache.CacheProperties;
+import com.crewmeister.cmcodingchallenge.commons.configuration.ApplicationConfig;
+import com.crewmeister.cmcodingchallenge.commons.configuration.HttpClientConfig;
+import com.crewmeister.cmcodingchallenge.entrypoint.controller.CurrencyController;
+import com.crewmeister.cmcodingchallenge.entrypoint.controller.RateFileDownloadController;
 
 @SpringBootTest
-class CmCodingChallengeApplicationTests {
+class SpringBootStaterApplicationTests {
 
 	@Autowired
 	CurrencyController currencyController;
@@ -22,13 +22,13 @@ class CmCodingChallengeApplicationTests {
 	RateFileDownloadController rateFileDownloadController;
 
 	@Autowired
-	RedisProperties redisProperties;
+	CacheProperties redisProperties;
 
 	@Autowired
 	ApplicationConfig applicationConfig;
 
 	@Autowired
-	RestTemplateConfig restTemplateConfig;
+	HttpClientConfig restTemplateConfig;
 
 	@Test
 	void contextLoadsCurrencyController() {

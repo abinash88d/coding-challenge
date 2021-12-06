@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.utility;
+package com.crewmeister.cmcodingchallenge.commons.utility;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

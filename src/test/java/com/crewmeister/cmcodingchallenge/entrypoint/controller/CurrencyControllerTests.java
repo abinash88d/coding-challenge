@@ -1,6 +1,7 @@
-package com.crewmeister.cmcodingchallenge.currency;
+package com.crewmeister.cmcodingchallenge.entrypoint.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
@@ -17,12 +18,15 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.commons.model.Response;
+import com.crewmeister.cmcodingchallenge.data.repository.StatusRepository;
+import com.crewmeister.cmcodingchallenge.data.service.DailyRateDataService;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(CurrencyController.class)
@@ -30,6 +34,9 @@ public class CurrencyControllerTests {
 
 	@MockBean
 	DailyRateDataService dailyRateDataService;
+	
+	@MockBean
+	StatusRepository statusRepository;
 
 	@Autowired
 	MockMvc mockMvc;
@@ -70,8 +77,8 @@ public class CurrencyControllerTests {
 
 		mockMvc.perform(get("/api/currencies")).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.jsonPath("$").exists())
-				.andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
-				.andExpect(MockMvcResultMatchers.jsonPath("$[1]").value("CAD"));
+				.andExpect(MockMvcResultMatchers.jsonPath("$.data").isArray())
+				.andExpect(MockMvcResultMatchers.jsonPath("$.data[1]").value("CAD"));
 	}
 
 	@Test

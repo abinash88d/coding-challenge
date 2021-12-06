@@ -33,5 +33,10 @@
     "name": "app.file.api.endpoint",
     "type": "java.lang.String",
     "description": "A description for 'app.file.api.endpoint'"
+  },
+  {
+    "name": "rate.refresh.cron.expression",
+    "type": "java.lang.String",
+    "description": "A description for 'rate.refresh.cron.expression'"
   }
 ]}

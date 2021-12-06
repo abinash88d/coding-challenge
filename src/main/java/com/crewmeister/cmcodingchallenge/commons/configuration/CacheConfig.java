@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.config;
+package com.crewmeister.cmcodingchallenge.commons.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -6,7 +6,7 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 
-import com.crewmeister.cmcodingchallenge.cache.RedisProperties;
+import com.crewmeister.cmcodingchallenge.commons.cache.CacheProperties;
 
 import redis.embedded.RedisServer;
 
@@ -17,10 +17,10 @@ import redis.embedded.RedisServer;
 
 @Configuration
 @EnableRedisRepositories
-public class RedisConfig {
+public class CacheConfig {
 
 	@Bean
-	public LettuceConnectionFactory redisConnectionFactory(RedisProperties redisProperties) {
+	public LettuceConnectionFactory redisConnectionFactory(CacheProperties redisProperties) {
 		return new LettuceConnectionFactory(redisProperties.getRedisHost(), redisProperties.getRedisPort());
 	}
 
@@ -32,7 +32,7 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public RedisServer prepareRedisServer(RedisProperties redisProperties) {
+	public RedisServer prepareRedisServer(CacheProperties redisProperties) {
 		return new RedisServer(redisProperties.getRedisPort());
 
 	}

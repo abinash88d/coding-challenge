@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.dataservice;
+package com.crewmeister.cmcodingchallenge.data.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -21,11 +21,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import com.crewmeister.cmcodingchallenge.dataservice.impl.DailyRateDataServiceImpl;
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
-import com.crewmeister.cmcodingchallenge.helper.DailyRateMapper;
-import com.crewmeister.cmcodingchallenge.repository.DailyRateRepository;
+import com.crewmeister.cmcodingchallenge.commons.helper.DailyRateMapper;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.repository.DailyRateRepository;
 
 @ExtendWith(MockitoExtension.class)
 

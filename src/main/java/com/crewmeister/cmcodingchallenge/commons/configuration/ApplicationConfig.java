@@ -1,10 +1,6 @@
-package com.crewmeister.cmcodingchallenge.config;
+package com.crewmeister.cmcodingchallenge.commons.configuration;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 
 import javax.annotation.PreDestroy;
 
@@ -16,10 +12,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.commons.utility.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.data.repository.StatusRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,17 +29,18 @@ import redis.embedded.RedisServer;
  * 
  * Manages <RedisServer>. Start/Stop server with Boot Clean up Exchange Rate
  * files from local mount {dailyrate/files/}. Downloads Exchange Rate files from
- * Bank's site Asynchronously 
+ * Bank's site Asynchronously
  *
  */
 
 @Configuration
+@EnableScheduling
 public class ApplicationConfig {
 
 	private static final Logger LOGGER = LogManager.getLogger(ApplicationConfig.class.getName());
 
 	@Value("${app.rate.download.currencies}")
-	public String currencies;
+	public List<String> currencies;
 
 	@Value("${app.rate.file.target}")
 	private String dailyRateFolder;
@@ -54,6 +54,9 @@ public class ApplicationConfig {
 	@Autowired
 	private RedisServer redisServer;
 
+	@Autowired
+	private StatusRepository statusRepository;
+
 	/**
 	 * <ApplicationReadyEvent> listener
 	 * 
@@ -65,23 +68,20 @@ public class ApplicationConfig {
 	 *
 	 */
 	@EventListener(ApplicationReadyEvent.class)
-	public void EventListenerExecute() {
+	public void eventListenerExecute() {
+		processRateFile();
+	}
 
-		redisServer.start();
+	@Scheduled(cron = "${rate.refresh.cron.expression}")
+	public void rateUploaderShedule() {
+		processRateFile();
 
-		Path dir = Paths.get(dailyRateFolder);
-		try {
-			if (Files.isDirectory(dir)) {
-				Files.walk(dir).map(Path::toFile).forEach(File::delete);
-			}
-		} catch (IOException exception) {
-			LOGGER.error(exception);
-			LOGGER.error(
-					"EventListenerExecute : Failed to clean Rate file directory" + exception.getLocalizedMessage());
-		}
+	}
 
-		String[] currencyList = currencies.split(CurrencyConstant.COMMA);
-		for (String currency : currencyList) {
+	private void processRateFile() {
+
+		for (String currency : currencies) {
+			statusRepository.createStatus(currency, CurrencyConstant.RATE_PROCESSING_STATUS_LOADING);
 			String fileNameToDownload = rateFileName.replace(":currency", currency);
 			WebClient webClient = WebClient.create();
 			Mono<String> response = webClient.get().uri(dailyRateDownloadEndpoint + fileNameToDownload).retrieve()
@@ -90,12 +90,12 @@ public class ApplicationConfig {
 
 		}
 	}
-	
+
 	@Bean
 	public javax.validation.Validator localValidatorFactoryBean() {
-	    return new LocalValidatorFactoryBean();
+		return new LocalValidatorFactoryBean();
 	}
-	
+
 	/**
 	 * Hook to clean resources
 	 */

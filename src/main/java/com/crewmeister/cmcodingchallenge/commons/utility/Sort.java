@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.constant;
+package com.crewmeister.cmcodingchallenge.commons.utility;
 
 import java.util.Arrays;
 import java.util.Optional;

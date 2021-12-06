@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.constant;
+package com.crewmeister.cmcodingchallenge.commons.utility;
 
 public final class CurrencyConstant {
 
@@ -29,6 +29,9 @@ public final class CurrencyConstant {
 	public static final String XML_VALUE_ATTRIBUTE = "value";
 	public static final String XML_STANDARD_CURRENCY_PATH = "//generic:SeriesKey/generic:Value[@id='BBK_STD_CURRENCY']/@value";
 	public static final String XML_FX_CURRENCY_PATH = "//generic:SeriesKey/generic:Value[@id='BBK_ERX_PARTNER_CURRENCY']/@value";
+	public static final String XML_FILTER_RATE_WITH_DATE = "//generic:Series/generic:Obs[./generic:ObsDimension[@value='%s']]";
+	public static final String XML_GET_PREPARED_DATE = "//message:Header/message:Prepared/text()";
+
 	public static final String XML_ROOT_NODE= "generic:Obs";
 	public static final String XML_RATE_DATE_TAG="generic:ObsDimension";
 	public static final String XML_EXCHANGE_RATE_TAG="generic:ObsValue";
@@ -57,11 +60,14 @@ public final class CurrencyConstant {
 	public static final String RESPONSE_NO_RECORD_FOR_HOLIDAY=  "No rates available for Holiday ";
 	
 	public static final String TIMESTAMP = "timestamp";
+	public static final String TIME_ZONE = "GMT+1";
 	public static final String MESSAGE = "message";
+	public static final String DATE_FORMAT = "yyyy-MM-dd";
 	
 	public static final String  RATE_PROCESSOR_USER = "DAILY_RATE_PROCESSOR";
 	
-
+	public static final String  RATE_PROCESSING_STATUS_LOADING = "LOADING";
+	public static final String  RATE_PROCESSING_STATUS_READY = "READY";
 
 
 }

@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.dataservice.impl;
+package com.crewmeister.cmcodingchallenge.data.service;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -16,11 +16,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
-import com.crewmeister.cmcodingchallenge.helper.DailyRateMapper;
-import com.crewmeister.cmcodingchallenge.repository.DailyRateRepository;
+import com.crewmeister.cmcodingchallenge.commons.helper.DailyRateMapper;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.repository.DailyRateRepository;
 
 /**
  * Data service Implementation for Daily Rates CRUD operation.
@@ -171,6 +170,11 @@ public class DailyRateDataServiceImpl implements DailyRateDataService {
 		DailyRate rateEntity = dailyRateRepository.findByRateDateAndSourceCurrency(rateDate, sourceCurrency);
 		return mapper.toDto(rateEntity);
 
+	}
+
+	@Override
+	public List<Object[]> findMaximumRateDateByCurrency() {
+		return dailyRateRepository.findMaximumRateDateByCurrency();
 	}
 
 }

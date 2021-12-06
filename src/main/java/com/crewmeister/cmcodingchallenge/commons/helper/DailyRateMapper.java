@@ -1,9 +1,9 @@
-package com.crewmeister.cmcodingchallenge.helper;
+package com.crewmeister.cmcodingchallenge.commons.helper;
 
 import org.springframework.stereotype.Component;
 
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
 
 /**
  * Mapper class for Entity to DTO mapping.

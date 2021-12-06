@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.currency;
+package com.crewmeister.cmcodingchallenge.entrypoint.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,11 +19,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import com.crewmeister.cmcodingchallenge.currency.RateFileDownloadController;
-import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileDownloader;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileParser;
+import com.crewmeister.cmcodingchallenge.commons.fileprocessor.DailyRateFileDownloader;
+import com.crewmeister.cmcodingchallenge.commons.fileprocessor.DailyRateFileParser;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.repository.StatusRepository;
+import com.crewmeister.cmcodingchallenge.data.service.DailyRateDataService;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(RateFileDownloadController.class)
@@ -37,6 +37,9 @@ public class RateFileDownloadControllerTest {
 
 	@MockBean
 	private DailyRateDataService dailyRateDataService;
+	
+	@MockBean
+	private StatusRepository statusRepository;
 
 	@Autowired
 	MockMvc mockMvc;

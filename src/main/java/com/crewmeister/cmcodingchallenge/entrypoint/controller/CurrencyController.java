@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.currency;
+package com.crewmeister.cmcodingchallenge.entrypoint.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,10 +25,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.crewmeister.cmcodingchallenge.constant.CurrencyConstant;
-import com.crewmeister.cmcodingchallenge.constant.Sort;
-import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.commons.model.Response;
+import com.crewmeister.cmcodingchallenge.commons.utility.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.commons.utility.Sort;
+import com.crewmeister.cmcodingchallenge.data.repository.StatusRepository;
+import com.crewmeister.cmcodingchallenge.data.service.DailyRateDataService;
 import com.crewmeister.cmcodingchallenge.exception.RateNotFoundException;
 
 import io.swagger.annotations.Api;
@@ -67,6 +69,9 @@ public class CurrencyController {
 	@Autowired
 	private DailyRateDataService dailyRateDataService;
 
+	@Autowired
+	private StatusRepository statusRepository;
+
 	/**
 	 * GET Service to fetch all available currencies
 	 * 
@@ -74,10 +79,21 @@ public class CurrencyController {
 
 	@ApiOperation(value = CurrencyConstant.API_DOC_CURRENCIES_VALUE, response = Iterable.class, tags = CurrencyConstant.API_DOC_CURRENCY_TAG)
 	@GetMapping("/currencies")
-	public ResponseEntity<List<String>> getCurrencies() {
+	public ResponseEntity<Response> getCurrencies() {
 		LOGGER.info("Inside get currencies service call ");
+		Map<String, String> statusMap = statusRepository.getAllStatus();
+		HttpStatus status;
+		String responseMessage;
+		if (statusMap.containsValue(CurrencyConstant.RATE_PROCESSING_STATUS_LOADING)) {
+			status = HttpStatus.PARTIAL_CONTENT;
+			responseMessage = "Partial currencies available.Loading in progress.";
+		} else {
+			status = HttpStatus.OK;
+			responseMessage = "Success";
+		}
 		List<String> currencyList = dailyRateDataService.findAllCurrencies();
-		return new ResponseEntity<List<String>>(currencyList, HttpStatus.OK);
+		Response response = new Response(status, responseMessage, currencyList);
+		return new ResponseEntity<>(response, status);
 	}
 
 	/**
@@ -99,7 +115,7 @@ public class CurrencyController {
 					.orElseThrow(() -> new IllegalArgumentException(CurrencyConstant.REQUEST_VALIDATION_INVALID_SORT));
 
 		}
-		
+
 		List<DailyRateDto> rateList = Collections.emptyList();
 		if (page.isPresent() && perPage.isPresent() && sortBy.isPresent()) {
 			rateList = dailyRateDataService.findAllRatesByPage(page.get(), perPage.get(), sortBy.get());

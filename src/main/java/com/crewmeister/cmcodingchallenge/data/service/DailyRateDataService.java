@@ -1,10 +1,10 @@
-package com.crewmeister.cmcodingchallenge.dataservice;
+package com.crewmeister.cmcodingchallenge.data.service;
 
 import java.sql.Date;
 import java.util.List;
 
-import com.crewmeister.cmcodingchallenge.dto.DailyRateDto;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.commons.model.DailyRateDto;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
 
 /**
  * Data service for Daily Rates CRUD operation.
@@ -25,5 +25,7 @@ public interface DailyRateDataService {
 	public DailyRateDto findByRateDateAndSourceCurrency(Date rateDate, String sourceCurrency);
 
 	public List<String> findAllCurrencies();
+	
+	public List<Object[]> findMaximumRateDateByCurrency();
 
 }

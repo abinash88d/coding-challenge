@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.entity;
+package com.crewmeister.cmcodingchallenge.data.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

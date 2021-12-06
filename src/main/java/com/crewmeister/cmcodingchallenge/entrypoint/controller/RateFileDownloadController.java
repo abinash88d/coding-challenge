@@ -1,6 +1,9 @@
-package com.crewmeister.cmcodingchallenge.currency;
+package com.crewmeister.cmcodingchallenge.entrypoint.controller;
 
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,12 +15,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.crewmeister.cmcodingchallenge.dataservice.DailyRateDataService;
-import com.crewmeister.cmcodingchallenge.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.commons.fileprocessor.DailyRateFileDownloader;
+import com.crewmeister.cmcodingchallenge.commons.fileprocessor.DailyRateFileParser;
+import com.crewmeister.cmcodingchallenge.commons.utility.CurrencyConstant;
+import com.crewmeister.cmcodingchallenge.commons.utility.DailyRateUtiliity;
+import com.crewmeister.cmcodingchallenge.data.entity.DailyRate;
+import com.crewmeister.cmcodingchallenge.data.repository.StatusRepository;
+import com.crewmeister.cmcodingchallenge.data.service.DailyRateDataService;
 import com.crewmeister.cmcodingchallenge.exception.FileParsingException;
 import com.crewmeister.cmcodingchallenge.exception.RateFileNotFoundException;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileDownloader;
-import com.crewmeister.cmcodingchallenge.processor.DailyRateFileParser;
 
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -42,6 +48,9 @@ public class RateFileDownloadController {
 	@Autowired
 	private DailyRateDataService dailyRateDataService;
 
+	@Autowired
+	private StatusRepository statusRepository;
+
 	/**
 	 * Service for uploading daily Rate in to App.
 	 * 
@@ -54,25 +63,65 @@ public class RateFileDownloadController {
 		LOGGER.info("Downloading File {}." + fileName);
 		Integer statusCode = dailyRateFileDownloader.downloadfile(fileName);
 
-		LOGGER.info("Downloading comppleted with status : fileName {}. " + fileName + "statusCode :"+statusCode);
-
 		if (200 == statusCode) {
 			try {
-				List<DailyRate> dailyRateList = dailyRateXmlParser.parseXml(fileName);
-				List<DailyRate> savedRecordList = dailyRateDataService.saveAllRates(dailyRateList);
+				List<Object[]> currencyStatus = dailyRateDataService.findMaximumRateDateByCurrency();
+				Boolean isRecordsUpdated = false;
+				Date lastRateEntryDate = null;
+				Date currentDate = null;
+				String processingCurrency = null;
+				for (Object[] arr : currencyStatus) {
+					if (fileName.contains(String.valueOf(arr[0]))) {
+						processingCurrency = String.valueOf(arr[0]);
+						LOGGER.info("processingCurrency : " + processingCurrency);
+						lastRateEntryDate = DailyRateUtiliity.getDateValue(String.valueOf(arr[1]));
+						LOGGER.info("lastRateEntryDate : " + lastRateEntryDate);
+						currentDate = DailyRateUtiliity.getLastWorkingDate(DailyRateUtiliity.getCurrentDate());
+						isRecordsUpdated = (lastRateEntryDate.toLocalDate().compareTo(currentDate.toLocalDate()) == 0);
+						break;
+					}
+				}
 
-				LOGGER.info("Total record processed size : " + savedRecordList.size());
+				List<DailyRate> dailyRateList = new ArrayList<>();
+				if (lastRateEntryDate == null) {
+					dailyRateList = dailyRateXmlParser.parseXml(fileName);
+				} else if (!isRecordsUpdated) {
+					while (lastRateEntryDate.compareTo(currentDate) != 0) {
+						lastRateEntryDate = DailyRateUtiliity.addDays(lastRateEntryDate, 1);
+						List<DailyRate> fetchedRateList = dailyRateXmlParser.parseXml(fileName, lastRateEntryDate);
+						dailyRateList.addAll(fetchedRateList);
+					}
+				}
 
-			} catch (FileParsingException exception) {
+				if (!dailyRateList.isEmpty()) {
+					List<DailyRate> savedRecordList = dailyRateDataService.saveAllRates(dailyRateList);
+					statusRepository.updateStatus(savedRecordList.get(0).getSourceCurrency(),
+							CurrencyConstant.RATE_PROCESSING_STATUS_READY);
+					LOGGER.info("Total record processed size : " + savedRecordList.size());
+				} else {
+					statusRepository.updateStatus(processingCurrency, CurrencyConstant.RATE_PROCESSING_STATUS_READY);
+					LOGGER.info("Data base is upto dated");
+				}
+
+			} catch (Exception exception) {
+				LOGGER.error("ERORO" + exception);
+				LOGGER.error("ERORO" + exception.getLocalizedMessage());
+
 				LOGGER.error("Unable to read File {}." + fileName, exception);
-				throw new RateFileNotFoundException("Unable to read File " + fileName, exception);
+				//throw new RateFileNotFoundException("Unable to read File " + fileName, exception);
 			}
-		} else{
+		} else {
+
 			LOGGER.error("Unable to download File {}." + fileName);
 			throw new RateFileNotFoundException("Unable to download File " + fileName);
 		}
 
 		return new ResponseEntity<String>(fileName + " downloaded successfully", HttpStatus.OK);
+	}
+
+	@GetMapping("/status")
+	public ResponseEntity<Map<String, String>> getRateProcessingStatus() {
+		return new ResponseEntity<Map<String, String>>(statusRepository.getAllStatus(), HttpStatus.OK);
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.processor;
+package com.crewmeister.cmcodingchallenge.commons.fileprocessor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -20,8 +20,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
-
-import com.crewmeister.cmcodingchallenge.processor.Impl.DailyRateFileDownloaderImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class DailyRateFileDownloaderTests {

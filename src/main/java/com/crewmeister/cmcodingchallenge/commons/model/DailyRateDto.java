@@ -1,4 +1,4 @@
-package com.crewmeister.cmcodingchallenge.dto;
+package com.crewmeister.cmcodingchallenge.commons.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
