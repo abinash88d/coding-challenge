@@ -67,12 +67,12 @@ public class ApplicationConfig {
 	 * Asynchronously
 	 *
 	 */
-	//@EventListener(ApplicationReadyEvent.class)
+	@EventListener(ApplicationReadyEvent.class)
 	public void eventListenerExecute() {
 		processRateFile();
 	}
 
-	//@Scheduled(cron = "${rate.refresh.cron.expression}")
+	@Scheduled(cron = "${rate.refresh.cron.expression}")
 	public void rateUploaderShedule() {
 		processRateFile();
 

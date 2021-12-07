@@ -18,8 +18,7 @@ import redis.embedded.RedisServer;
 @Configuration
 @EnableRedisRepositories
 public class CacheConfig {
-
-	@Bean
+	
 	public LettuceConnectionFactory redisConnectionFactory(CacheProperties redisProperties) {
 		return new LettuceConnectionFactory(redisProperties.getRedisHost(), redisProperties.getRedisPort());
 	}
