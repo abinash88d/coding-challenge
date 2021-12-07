@@ -21,7 +21,7 @@ public class CacheProperties {
 	private String redisHost;
 
 	public CacheProperties(@Value("${PORT}") int redisPort,
-			@Value("${spring.redis.host}") String redisHost) {
+			@Value("${REDISTOGO_URL}") String redisHost) {
 		this.redisPort = redisPort;
 		this.redisHost = redisHost;
 	}
