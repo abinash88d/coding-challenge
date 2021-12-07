@@ -20,6 +20,7 @@ import redis.embedded.RedisServer;
 public class CacheConfig {
 	
 	public LettuceConnectionFactory redisConnectionFactory(CacheProperties redisProperties) {
+		System.out.println("redisPort ------"+redisProperties.getRedisPort());
 		return new LettuceConnectionFactory(redisProperties.getRedisHost(), redisProperties.getRedisPort());
 	}
 
