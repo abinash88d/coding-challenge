@@ -69,7 +69,6 @@ public class ApplicationConfig {
 	 */
 	@EventListener(ApplicationReadyEvent.class)
 	public void eventListenerExecute() {
-		redisServer.start();
 		processRateFile();
 	}
 
