@@ -1,5 +1,22 @@
 # Abinash's Solution
 
+## Enhancement
+
+As Rate files are getting downloaded asynchronously, other services will be up and serves for partial currencies.
+A new status service has been added to check the status for all the available currencies.
+
+Status service URL
+http://localhost:8080/api/status
+
+Until all the Currencies are ready, api/currencies service will server partial response (with status code 206 and message)
+
+JOB has been sheduled to run automatically everyday 11 AM.
+On sheduler services only process partial missing records, not refreshes entire DB.
+
+Properties can be externalize to config server and with extend it can auto refresh without bringing down services using Spring actuator.
+
+
+
 ## Design
 The challenge has been solved in to parts.
   1. First Service downloads rate files asynchronously from Bank's site on boot and loads into H2 database. In real scenario it can be configured with scheduled.
