@@ -21,7 +21,6 @@ public class CacheConfig {
 	
 	@Bean
 	public LettuceConnectionFactory redisConnectionFactory(CacheProperties redisProperties) {
-		System.out.println("redisPort ------"+redisProperties.getRedisPort());
 		return new LettuceConnectionFactory(redisProperties.getRedisHost(), redisProperties.getRedisPort());
 	}
 
